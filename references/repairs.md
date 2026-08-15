@@ -22,9 +22,10 @@ If no ledger exists, ask the user for the repair facts (date, device, issue, cos
 
 - **Cause** — `drop` / `defect` / `wear` / `user` (what actually caused it — drives whether a claim was ever realistic)
 - **Warranty-covered?** — `Yes` / `No` / `Partial` / `N/A` (e.g. self-sourced part)
-- **Claim status** — `none` / `filed` / `denied` / `resolved`
+- **Claim status** — `none` / `filed` / `denied` / `resolved` (canonical claim words in `recall.md`: `open` / `approved` / `rejected` / `refund-issued` / `escalated`)
 - **Paid by** — `OOP` / `warranty` / `insurance`
 - **Outcome** — one line: what happened after the repair (healthy / still broken / escalated / replaced)
+- **Repair status (canonical, for recall answers)** — `done` / `warranty` (covered fix) / `oow` (out of warranty, paid OOP); maps from Paid by + Outcome. See `recall.md`.
 - Summary block (top of ledger): **total OOP repair spend**, **open warranty claims**, **last updated**
 
 ## 3. How repairs feed the loop
@@ -101,6 +102,7 @@ For any broken/repaired device:
 ## 9. Related
 
 - `claims.md` — the claims path (warranty → NCH → e-Daakhil) and where claim outcomes get logged
+- `recall.md` — canonical repair status words (`done` / `warranty` / `oow`) + how to answer later "what's the repair status?" questions
 - `tracker.md` — post-purchase review / satisfaction; pipeline-aware budget rule
 - `emi.md` — why a replacement might mean a new EMI (repair-vs-replace matters most then)
 - `finance.md` — effective-price math for the replacement side

@@ -1,0 +1,166 @@
+name: validate
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate skill
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Frontmatter / reference integrity / leak scan
+        run: python3 - <<'EOF'
+import os
+import re
+import sys
+
+problems = []
+root = os.getcwd()
+skill_md = os.path.join(root, "SKILL.md")
+
+# --- 1. Frontmatter ---
+with open(skill_md, encoding="utf-8") as fh:
+    lines = fh.read().splitlines()
+
+if lines[0].strip() != "---":
+    problems.append("SKILL.md must start with --- frontmatter delimiter")
+fm = []
+for i in range(1, len(lines)):
+    if lines[i].strip() == "---":
+        break
+    fm.append(lines[i])
+else:
+    problems.append("SKILL.md frontmatter not closed with ---")
+
+fm_text = "\n".join(fm)
+name_m = re.search(r"^name:\s*(\S+)\s*$", fm_text, re.M)
+desc_m = re.search(r'^description:\s*"?(.*?)"?\s*$', fm_text, re.M | re.S)
+
+if name_m:
+    name = name_m.group(1)
+    if name != "deal-hunter":
+        problems.append(f"frontmatter name '{name}' != 'deal-hunter'")
+    if not re.fullmatch(r"[a-z0-9]+(-[a-z0-9]+)*", name):
+        problems.append(f"frontmatter name '{name}' is not kebab-case")
+else:
+    problems.append("frontmatter missing required 'name' field")
+
+if desc_m:
+    desc = desc_m.group(1).strip()
+    if len(desc) > 1024:
+        problems.append(f"frontmatter description is {len(desc)} chars (spec limit 1024)")
+else:
+    problems.append("frontmatter missing required 'description' field")
+
+if "<" in fm_text or ">" in fm_text:
+    problems.append("frontmatter contains < or > characters (spec forbids XML tags)")
+
+# --- 2. Reference integrity: every references/assets file named in SKILL.md exists ---
+with open(skill_md, encoding="utf-8") as fh:
+    skill_text = fh.read()
+
+for ref in re.findall(r"references/[A-Za-z0-9_./-]+\.md", skill_text):
+    if not os.path.isfile(os.path.join(root, ref)):
+        problems.append(f"SKILL.md references missing file: {ref}")
+for ref in re.findall(r"assets/[A-Za-z0-9_./-]+\.csv", skill_text):
+    if not os.path.isfile(os.path.join(root, ref)):
+        problems.append(f"SKILL.md references missing file: {ref}")
+
+# --- 3. Leak scan: personal data must never ship ---
+leak_patterns = [
+    r"C:\\Users",                      # Windows user paths
+    r"D:\\",                           # Windows data drives
+    r"\bObseq\b",                      # vault folder name
+    r"\bRaspsec\b",                    # local account name
+    r"\bOneDrive\b",
+    r"\+91[\s\-]?\d{9,10}",            # Indian phone numbers
+    r"\bB0[A-Z0-9]{9}\b",              # Amazon ASINs
+    r"Order\s*(#|No\.?)?\s*[-\d]{6,}", # order IDs
+    r"HAMMONDS",
+    r"Project/Smart Shopping",         # vault paths
+    r"(^|/)Trackers/",
+    r"(^|/)Journal/",
+    r"Resources/Web Library",
+]
+scan_targets = []
+for name in ("SKILL.md", "README.md"):
+    p = os.path.join(root, name)
+    if os.path.isfile(p):
+        scan_targets.append(p)
+for sub in ("references", "assets"):
+    d = os.path.join(root, sub)
+    if os.path.isdir(d):
+        for dp, _, fns in os.walk(d):
+            for fn in fns:
+                scan_targets.append(os.path.join(dp, fn))
+
+for path in scan_targets:
+    with open(path, encoding="utf-8", errors="replace") as fh:
+        text = fh.read()
+    for pat in leak_patterns:
+        for m in re.finditer(pat, text):
+            line_no = text.count("\n", 0, m.start()) + 1
+            problems.append(f"leak '{pat}' in {os.path.relpath(path, root)}:{line_no}")
+
+# --- 4. Report ---
+if problems:
+    print("VALIDATION FAILED")
+    for p in sorted(set(problems)):
+        print(f"  - {p}")
+    sys.exit(1)
+print("VALIDATION OK: frontmatter, references, and leak scan clean")
+EOF
+
+  release:
+    name: Build and attach .skill zip
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: validate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build deal-hunter.skill zip
+        run: python3 - <<'EOF'
+import os
+import zipfile
+
+root = os.getcwd()
+zip_path = os.path.join(root, "deal-hunter.skill")
+
+skip = {".git", ".gitattributes", ".gitignore", "AGENTS.md", "deal-hunter-mocs.md",
+        "README.md", ".github", "dist"}
+
+with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
+    for dp, dirs, fns in os.walk(root):
+        dirs[:] = [d for d in dirs if d not in skip]
+        for fn in fns:
+            full = os.path.join(dp, fn)
+            rel = os.path.relpath(full, root).replace(os.sep, "/")
+            top = rel.split("/")[0]
+            if top in skip:
+                continue
+            zf.write(full, f"deal-hunter/{rel}")
+
+with zipfile.ZipFile(zip_path) as zf:
+    entries = zf.namelist()
+    assert "deal-hunter/SKILL.md" in entries, "zip missing SKILL.md at skill root"
+    assert any(e.startswith("deal-hunter/references/") for e in entries), "zip missing references/"
+    assert any(e.startswith("deal-hunter/assets/") for e in entries), "zip missing assets/"
+    assert not any(e.startswith("deal-hunter/README") for e in entries), "README must not ship in the zip"
+    assert not any("AGENTS" in e for e in entries), "AGENTS.md must not ship in the zip"
+print(f"zip built: {zip_path} ({len(entries)} entries, root deal-hunter/)")
+EOF
+
+      - name: Attach to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: deal-hunter.skill
+          generate_release_notes: true

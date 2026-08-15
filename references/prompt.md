@@ -164,3 +164,4 @@ When the user already picked 2-3 specific products (not hunting from scratch), s
 - For community verification, load `community.md` (Reddit-first, long-term ownership, paid-plant detection)
 - For any India-market buy, load `india.md` for the platform map, sale calendar, purchase mechanics, and scam safety
 - Always ask the user where to save results before recording — never assume a destination. By default output the record in chat; write/download only when asked (see `tracker.md`)
+- **Recall (JOB 10):** a later *"status of X / where is my claim? / any EMI running?"* query is a **recall job** — read the record (vault tracker/note, project memory, or the user's attached `my-deals.csv`) before re-researching; answer status + where recorded + next action, and export in any format the user wants. Canonical status words + answer format: `recall.md`

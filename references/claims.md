@@ -19,7 +19,7 @@ Load this file when a purchase **breaks, arrives wrong, or the warranty is refus
 3. **National Consumer Helpline (NCH)** — call **1915** or file at **consumerhelpline.gov.in**; a logged complaint often unlocks a response the brand ignored for weeks
 4. **e-Daakhil** (online consumer forum) — free, online consumer-complaint filing at **edaakhil.nic.in**; refund/replacement/compensation can be awarded
 5. **District consumer commission** — only for amounts above the e-Daakhil/forum limit, or if the brand ignores the forum order
-6. Whatever the outcome, **log it** — a covered repair goes in the repair ledger as `Paid by = warranty` (see `repairs.md`); a denied claim becomes an OOP repair that tells the truth about durability
+6. Whatever the outcome, **log it** — a covered repair goes in the repair ledger as `Paid by = warranty` (see `repairs.md`); a denied claim becomes an OOP repair that tells the truth about durability. Log the **claim status** with the canonical words (`open` / `approved` / `rejected` / `refund-issued` / `escalated` — see `recall.md`) so a later *"where is my claim?"* can be answered from the record.
 
 ## 3. What to prepare before escalating
 
@@ -43,6 +43,7 @@ Load this file when a purchase **breaks, arrives wrong, or the warranty is refus
 
 - `finance.md` — section 8: price protection
 - `tracker.md` — record the claim status + warranty-registration date on the row
+- `recall.md` — canonical claim status words (`open` / `approved` / `rejected` / `refund-issued` / `escalated`) + how to answer later "where is my claim?" questions
 - `repairs.md` — log the repair + claim outcome; repair-vs-replace (fix vs replace) when a repair is needed
 - `used.md` — warranty-transfer reality for used/refurb (often non-transferable)
 - `community.md` — complaint portals as a verification source (consumerhelpline.gov.in, NCH)

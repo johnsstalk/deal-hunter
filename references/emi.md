@@ -23,7 +23,7 @@ If no ledger exists, ask the user for their active EMIs (product, financier, pri
 - **Monthly EMI** — exact figure from the statement when available; estimate = principal ÷ tenure until then (flag as estimate)
 - **Remaining obligation** — principal still owed (Σ of unpaid instalments); this is **committed future spend**
 - **Interest** — e.g. `0% (no-cost)`, `15% p.a.`; also note processing/convenience fees
-- **Status** — `active` → `closed`; keep closed rows as history
+- **Status** — `active` / `closed` / `early-closed` (canonical EMI words in `recall.md`); keep closed rows as history
 - Summary block (top of ledger): **monthly EMI ceiling**, **total monthly committed**, **remaining obligation**, **last updated**
 
 The user-defined **monthly EMI ceiling** is the budget line — store it in the ledger once, reuse it on every check.
@@ -92,4 +92,5 @@ For any financed purchase (or any purchase while EMIs are active):
 
 - `finance.md` — effective-price formula, no-cost-EMI reality check, affordability depth (§6)
 - `tracker.md` — the pipeline-aware budget rule (queued + EMI remaining = future spend)
+- `recall.md` — canonical EMI status words (`active` / `closed` / `early-closed`) + how to answer later "any EMI running?" questions
 - `subscriptions.md` — the recurring-spend audit (EMIs are the recurring-spend cousin)

@@ -25,6 +25,8 @@ Load this file when recording a hunt result or when the user asks "what's a fair
 - **bought** — purchase made
 - **skipped** — rejected (bad value / alternative won / don't-buy)
 
+**Recall normalization:** when a later *"status of X?"* question is answered from the record, normalize these words to the canonical vocabulary in `recall.md` (`bought` / `buying` / `waiting` / `cancelled`); answer with product, date, effective price, status, where it's recorded, and next action. The merged `assets/my-deals.csv` (deal + claim + EMI + repair on one row) is the everything-in-one portable schema for users who keep a single file.
+
 After a bought product gets real use, append a **satisfaction rating** (`HIGH`/`MED`/`LOW`) and the **"worth it after extended use?"** verdict to the row — it calibrates future value scores. If it breaks or arrives wrong, log the **claim status** on the row (warranty filed / NCH / e-Daakhil) so the escalation isn't forgotten (see `claims.md`). If a device gets **repaired**, log the repair (cost, warranty-covered?, claim outcome) and run **repair-vs-replace** before replacing it (see `repairs.md`) — a repair history is the durability truth behind the next value score.
 
 > [!warning] Pipeline-aware budget rule
@@ -87,3 +89,4 @@ After a hunt, record a short note like:
 - Before any new spend, surface the pipeline total: ₹ out + ₹ queued + ₹ active-EMI remaining + ₹ new (informational — never block silently)
 - Active EMIs live in the EMI ledger (`emi.md`); their remaining obligation counts in every pipeline total
 - Over time the tracker tells you the true fair price for any category
+- Record & Recall playbook: `recall.md` (canonical status words, the merged `assets/my-deals.csv` schema, and web copy-paste rows for agents that can't write files)
